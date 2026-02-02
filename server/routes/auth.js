@@ -33,9 +33,17 @@ router.post('/register', async (req, res) => {
             <a href="${verifyUrl}">Verify Email</a>
         `;
 
-        await sendEmail(email, 'Verify your email - Task 4', html);
+        try {
+            await sendEmail(email, 'Verify your email - Task 4', html, verifyUrl);
+        } catch (emailErr) {
+            console.error('Email service failed. Verification link:', verifyUrl);
+            // We don't throw 500 here because the user is already in the DB
+        }
 
-        res.status(201).json({ message: 'User registered. Please check email to verify.' });
+        res.status(201).json({
+            message: 'User registered. Please check email to verify.',
+            debugLink: process.env.NODE_ENV === 'development' ? verifyUrl : undefined
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
