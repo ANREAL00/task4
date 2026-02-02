@@ -12,8 +12,17 @@ function RegisterPage() {
 
     const onFinish = async (values) => {
         try {
-            await api.post('/auth/register', values);
-            message.success('Registration successful! Check your email to verify account.');
+            const response = await api.post('/auth/register', values);
+            const verifyUrl = response.data.verifyUrl;
+
+            message.success('Registration successful!');
+
+            if (verifyUrl) {
+                message.info('Check your email. If it doesn\'t arrive, use this link: ' + verifyUrl, 10);
+            } else {
+                message.info('Check your email to verify account.');
+            }
+
             navigate('/login');
         } catch (error) {
             console.error(error);
