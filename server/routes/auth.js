@@ -41,6 +41,10 @@ router.post('/register', async (req, res) => {
             verifyUrl: verifyUrl
         });
     } catch (error) {
+        // IMPORTANT: Handle duplicate email error from database unique index
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ message: 'Email already exists' });
+        }
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
