@@ -1,85 +1,40 @@
-const nodemailer = require('nodemailer');
-
-const createTransporter = async () => {
-    // Priority 1: Real SMTP from environment variables
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-        console.log('Connecting to Real SMTP:', process.env.SMTP_HOST, 'Port:', process.env.SMTP_PORT || 587);
-        return nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT || '587'),
-            secure: process.env.SMTP_PORT === '465' || process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 10000,
-            debug: true,
-            logger: true
-        });
-    }
-
-    // Priority 2: Ethereal (Development Fallback)
-    try {
-        console.log('Falling back to Ethereal Email Service...');
-        const testAccount = await nodemailer.createTestAccount();
-        return nodemailer.createTransport({
-            host: testAccount.smtp.host,
-            port: testAccount.smtp.port,
-            secure: testAccount.smtp.secure,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass,
-            },
-        });
-    } catch (err) {
-        console.error("Failed to create Ethereal account:", err.message);
-        return null; // Fallback to console logging only
-    }
-};
-
-let transporterPromise = createTransporter();
+const axios = require('axios');
 
 const sendEmail = async (to, subject, html, fallbackLink) => {
-    try {
-        const transporter = await transporterPromise;
-        let from = process.env.SMTP_FROM || '"Task 4 Admin" <admin@example.com>';
+    // 1. Resend API (HTTPS - bypasses Render port blocks)
+    if (process.env.RESEND_API_KEY) {
+        try {
+            console.log('Sending email via Resend API to:', to);
 
-        // Gmail fix: Ensure FROM includes the user email for compatibility
-        if (from === 'Admin' || (from && !from.includes('@'))) {
-            from = `"${from}" <${process.env.SMTP_USER}>`;
+            const from = process.env.SMTP_FROM || 'onboarding@resend.dev';
+
+            const response = await axios.post('https://api.resend.com/emails', {
+                from: from,
+                to: [to],
+                subject: subject,
+                html: html
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('Email sent successfully via Resend! ID:', response.data.id);
+            return response.data;
+        } catch (apiError) {
+            console.error('Resend API error:', apiError.response ? apiError.response.data : apiError.message);
+            // Fallback continues below
         }
-
-        if (!transporter) {
-            console.log("\n--- EMAIL FALLBACK (NO TRANSPORTER) ---");
-            console.log(`To: ${to}`);
-            console.log(`Link: ${fallbackLink}`);
-            console.log("---------------------------------------\n");
-            return { messageId: 'fallback' };
-        }
-
-        const info = await transporter.sendMail({
-            from: from,
-            to: to,
-            subject: subject,
-            html: html,
-        });
-
-        console.log("Email sent successfully! ID:", info.messageId);
-        if (nodemailer.getTestMessageUrl(info)) {
-            console.log("Ethereal Preview URL:", nodemailer.getTestMessageUrl(info));
-        }
-
-        return info;
-    } catch (error) {
-        console.error("Critical error in sendEmail:", error.message);
-        console.log("\n--- EMERGENCY LINK LOG ---");
-        console.log(`User: ${to}`);
-        console.log(`Link: ${fallbackLink}`);
-        console.log("---------------------------\n");
-        throw error;
     }
+
+    // 2. FINAL FALLBACK: Always log the link to the server console
+    console.log("\n--- !!! VERIFICATION LINK FALLBACK !!! ---");
+    console.log(`To: ${to}`);
+    console.log(`Link: ${fallbackLink}`);
+    console.log("------------------------------------------\n");
+
+    return { status: 'fallback-logged' };
 };
 
 module.exports = sendEmail;
