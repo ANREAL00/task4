@@ -26,7 +26,8 @@ router.post('/register', async (req, res) => {
             [name, email, hashedPassword, verificationToken]
         );
 
-        const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}`;
+        const clientHost = process.env.CLIENT_URL || req.get('origin') || 'http://localhost:5173';
+        const verifyUrl = `${clientHost}/verify-email?token=${verificationToken}`;
         const html = `
             <h1>Verify your email</h1>
             <p>Thanks for registering! Please click the link below to verify your email:</p>
