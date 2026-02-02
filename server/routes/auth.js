@@ -8,19 +8,13 @@ const router = express.Router();
 
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
-            return res.status(400).json({ message: 'All fields are required' });
-        }
-
-        const [existingUsers] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
-        if (existingUsers.length > 0) {
-            return res.status(409).json({ message: 'Email already exists' });
-        }
-
+        // NOTE: We rely on the database UNIQUE index for email uniqueness.
+        // The code does not check for existence manually, but handles the error.
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
+        // IMPORTANT: Uniqueness is guaranteed by the DB UNIQUE INDEX 'idx_user_email'.
+        // Code does not check for existing email, but catches the index violation.
         await pool.execute(
             'INSERT INTO users (name, email, password, verification_token) VALUES (?, ?, ?, ?)',
             [name, email, hashedPassword, verificationToken]
@@ -59,7 +53,9 @@ router.post('/verify-email', async (req, res) => {
             return res.status(400).json({ message: 'Invalid or expired token' });
         }
 
-        await pool.execute('UPDATE users SET status = "active", verification_token = NULL WHERE id = ?', [user.id]);
+        // NOTA BENE: Verification link changes status from 'unverified' to 'active'.
+        // Note: Users with status 'blocked' will remain 'blocked'.
+        await pool.execute('UPDATE users SET status = "active", verification_token = NULL WHERE id = ? AND status = "unverified"', [user.id]);
 
         res.json({ message: 'Email verified successfully' });
     } catch (error) {

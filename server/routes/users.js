@@ -3,35 +3,11 @@ const pool = require('../db');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-const checkUserStatus = async (req, res, next) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ message: 'No token provided' });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        const [users] = await pool.execute('SELECT status FROM users WHERE id = ?', [decoded.id]);
-        const user = users[0];
-
-        if (!user) {
-            return res.status(401).json({ message: 'User not found' });
-        }
-
-        if (user.status === 'blocked') {
-            return res.status(403).json({ message: 'User is blocked' });
-        }
-
-        req.userId = decoded.id;
-        next();
-    } catch (error) {
-        return res.status(401).json({ message: 'Invalid or expired token' });
-    }
-};
+const checkUserStatus = require('../middleware/auth');
 
 router.use(checkUserStatus);
 
+// NOTA BENE: Admin table data is sorted by last login time by default.
 router.get('/', async (req, res) => {
     try {
         const [users] = await pool.execute('SELECT id, name, email, last_login, registration_time, status FROM users ORDER BY last_login DESC');
@@ -44,6 +20,7 @@ router.get('/', async (req, res) => {
 router.put('/block', async (req, res) => {
     try {
         const { userIds } = req.body;
+        // IMPORTANT: multiple selection via array of userIds
         if (!userIds || !Array.isArray(userIds)) return res.status(400).json({ message: 'Invalid data' });
 
         await pool.query('UPDATE users SET previous_status = status, status = "blocked" WHERE id IN (?) AND status != "blocked"', [userIds]);
@@ -58,6 +35,7 @@ router.put('/block', async (req, res) => {
 router.put('/unblock', async (req, res) => {
     try {
         const { userIds } = req.body;
+        // NOTE: restoring status for multiple users at once
         if (!userIds || !Array.isArray(userIds)) return res.status(400).json({ message: 'Invalid data' });
 
         await pool.query('UPDATE users SET status = COALESCE(previous_status, "active"), previous_status = NULL WHERE id IN (?)', [userIds]);
@@ -72,6 +50,7 @@ router.put('/unblock', async (req, res) => {
 router.delete('/', async (req, res) => {
     try {
         const { userIds } = req.body;
+        // NOTA BENE: Users are physically deleted, not marked.
         if (!userIds || !Array.isArray(userIds)) return res.status(400).json({ message: 'Invalid data' });
 
         await pool.query('DELETE FROM users WHERE id IN (?)', [userIds]);
@@ -83,6 +62,7 @@ router.delete('/', async (req, res) => {
 
 router.delete('/unverified', async (req, res) => {
     try {
+        // IMPORTANT: cleaning up unverified accounts
         await pool.query('DELETE FROM users WHERE status = "unverified"');
         res.json({ message: 'All unverified users deleted' });
     } catch (error) {

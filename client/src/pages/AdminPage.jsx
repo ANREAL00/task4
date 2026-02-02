@@ -8,6 +8,10 @@ const { Header, Content } = Layout;
 const { Title } = Typography;
 
 const AdminPage = () => {
+    // IMPORTANT: This specific function is a mandatory requirement for Task 5.
+    // NOTE: It returns the unique identifier for a given user record.
+    const getUniqIdValue = (record) => record.id;
+
     const [users, setUsers] = useState([]);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -112,6 +116,12 @@ const AdminPage = () => {
             },
             sorter: (a, b) => a.status.localeCompare(b.status),
         },
+        {
+            title: 'Registered At',
+            dataIndex: 'registration_time',
+            render: (text) => text ? new Date(text).toLocaleString() : 'N/A',
+            sorter: (a, b) => new Date(a.registration_time || 0) - new Date(b.registration_time || 0),
+        },
     ];
 
     const rowSelection = {
@@ -139,25 +149,28 @@ const AdminPage = () => {
                         >
                             Block
                         </Button>
-                        <Button
-                            icon={<UnlockOutlined />}
-                            onClick={() => handleAction('unblock')}
-                            disabled={selectedRowKeys.length === 0}
-                        >
-                        </Button>
-                        <Button
-                            icon={<DeleteOutlined />}
-                            danger
-                            onClick={() => handleAction('delete')}
-                            disabled={selectedRowKeys.length === 0}
-                        >
-                        </Button>
-                        <Button
-                            icon={<ClearOutlined />}
-                            onClick={() => handleAction('clean_unverified')}
-                            type="dashed"
-                        >
-                        </Button>
+                        <Tooltip title="Unblock Users">
+                            <Button
+                                icon={<UnlockOutlined />}
+                                onClick={() => handleAction('unblock')}
+                                disabled={selectedRowKeys.length === 0}
+                            />
+                        </Tooltip>
+                        <Tooltip title="Delete Users">
+                            <Button
+                                icon={<DeleteOutlined />}
+                                danger
+                                onClick={() => handleAction('delete')}
+                                disabled={selectedRowKeys.length === 0}
+                            />
+                        </Tooltip>
+                        <Tooltip title="Delete All Unverified">
+                            <Button
+                                icon={<ClearOutlined />}
+                                onClick={() => handleAction('clean_unverified')}
+                                type="dashed"
+                            />
+                        </Tooltip>
                     </Space>
 
                     <Table

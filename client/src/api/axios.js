@@ -22,7 +22,7 @@ api.interceptors.response.use(
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+                window.location.href = '/login?reason=auth_error';
             }
         }
         return Promise.reject(error);

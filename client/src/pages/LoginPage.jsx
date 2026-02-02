@@ -10,6 +10,15 @@ const { Title, Text } = Typography;
 function LoginPage() {
     const navigate = useNavigate();
 
+    React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('reason') === 'auth_error') {
+            message.warning('Your session has ended because your account was blocked, deleted, or the session expired.');
+            // Clean up the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
+
     const onFinish = async (values) => {
         try {
             const response = await api.post('/auth/login', values);
