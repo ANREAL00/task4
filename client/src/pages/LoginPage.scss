@@ -72,3 +72,48 @@
         }
     }
 }
+
+@media (max-width: 425px) {
+    .login-container {
+        flex-direction: column;
+
+        .login-image-section {
+            display: none;
+        }
+
+        .login-form-section {
+            width: 85%;
+            height: 100vh;
+        }
+    }
+}
+
+@media (max-width: 375px) {
+    .login-container {
+        flex-direction: column;
+
+        .login-image-section {
+            display: none;
+        }
+
+        .login-form-section {
+            width: 82%;
+            height: 100vh;
+        }
+    }
+}
+
+@media (max-width: 320px) {
+    .login-container {
+        flex-direction: column;
+
+        .login-image-section {
+            display: none;
+        }
+
+        .login-form-section {
+            width: 80%;
+            height: 100vh;
+        }
+    }
+}
