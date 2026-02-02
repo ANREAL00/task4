@@ -4,6 +4,8 @@ import { UnlockOutlined, StopOutlined, DeleteOutlined, LogoutOutlined, ClearOutl
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 
+import './AdminPage.scss';
+
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
@@ -83,22 +85,26 @@ const AdminPage = () => {
             title: 'ID',
             dataIndex: 'id',
             sorter: (a, b) => a.id - b.id,
+            width: 70,
         },
         {
             title: 'Name',
             dataIndex: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
+            width: 150,
         },
         {
             title: 'Email',
             dataIndex: 'email',
             sorter: (a, b) => a.email.localeCompare(b.email),
+            width: 200,
         },
         {
             title: 'Last Login',
             dataIndex: 'last_login',
             render: (text) => text ? new Date(text).toLocaleString() : 'Never',
             sorter: (a, b) => new Date(a.last_login || 0) - new Date(b.last_login || 0),
+            width: 180,
         },
         {
             title: 'Status',
@@ -115,12 +121,14 @@ const AdminPage = () => {
                 );
             },
             sorter: (a, b) => a.status.localeCompare(b.status),
+            width: 120,
         },
         {
             title: 'Registered At',
             dataIndex: 'registration_time',
             render: (text) => text ? new Date(text).toLocaleString() : 'N/A',
             sorter: (a, b) => new Date(a.registration_time || 0) - new Date(b.registration_time || 0),
+            width: 180,
         },
     ];
 
@@ -130,55 +138,59 @@ const AdminPage = () => {
     };
 
     return (
-        <Layout className="layout" style={{ minHeight: '100vh', minWidth: '100vw' }}>
-            <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '0 24px', boxShadow: '0 2px 8px #f0f1f2' }}>
+        <Layout className="admin-layout" style={{ minHeight: '100vh', width: '100%' }}>
+            <Header className="admin-header">
                 <Title level={4} style={{ margin: 0 }}>Admin Panel</Title>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div className="header-actions">
                     <Button icon={<LogoutOutlined />} onClick={handleLogout}>Logout</Button>
                 </div>
             </Header>
-            <Content style={{ padding: '24px', flex: 1 }}>
-                <div style={{ background: '#fff', padding: 24, borderRadius: '8px', height: '100%' }}>
-                    <Space style={{ marginBottom: 16 }}>
-                        <Button
-                            type="primary"
-                            danger
-                            icon={<StopOutlined />}
-                            onClick={() => handleAction('block')}
-                            disabled={selectedRowKeys.length === 0}
-                        >
-                            Block
-                        </Button>
-                        <Tooltip title="Unblock Users">
+            <Content className="admin-content">
+                <div className="admin-card">
+                    <div className="toolbar-container">
+                        <Space wrap className="toolbar-space">
                             <Button
-                                icon={<UnlockOutlined />}
-                                onClick={() => handleAction('unblock')}
-                                disabled={selectedRowKeys.length === 0}
-                            />
-                        </Tooltip>
-                        <Tooltip title="Delete Users">
-                            <Button
-                                icon={<DeleteOutlined />}
+                                type="primary"
                                 danger
-                                onClick={() => handleAction('delete')}
+                                icon={<StopOutlined />}
+                                onClick={() => handleAction('block')}
                                 disabled={selectedRowKeys.length === 0}
-                            />
-                        </Tooltip>
-                        <Tooltip title="Delete All Unverified">
-                            <Button
-                                icon={<ClearOutlined />}
-                                onClick={() => handleAction('clean_unverified')}
-                                type="dashed"
-                            />
-                        </Tooltip>
-                    </Space>
+                            >
+                                Block
+                            </Button>
+                            <Tooltip title="Unblock Users">
+                                <Button
+                                    icon={<UnlockOutlined />}
+                                    onClick={() => handleAction('unblock')}
+                                    disabled={selectedRowKeys.length === 0}
+                                />
+                            </Tooltip>
+                            <Tooltip title="Delete Users">
+                                <Button
+                                    icon={<DeleteOutlined />}
+                                    danger
+                                    onClick={() => handleAction('delete')}
+                                    disabled={selectedRowKeys.length === 0}
+                                />
+                            </Tooltip>
+                            <Tooltip title="Delete All Unverified">
+                                <Button
+                                    icon={<ClearOutlined />}
+                                    onClick={() => handleAction('clean_unverified')}
+                                    type="dashed"
+                                />
+                            </Tooltip>
+                        </Space>
+                    </div>
 
                     <Table
                         rowSelection={rowSelection}
                         columns={columns}
                         dataSource={users}
                         loading={loading}
-                        pagination={{ pageSize: 10 }}
+                        pagination={{ pageSize: 12 }}
+                        scroll={{ x: 800 }}
+                        className="admin-table"
                     />
                 </div>
             </Content>
