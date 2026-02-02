@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined, SmileOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import './LoginPage.scss';
 
 const { Title, Text } = Typography;
@@ -12,7 +12,7 @@ function RegisterPage() {
 
     const onFinish = async (values) => {
         try {
-            await axios.post(import.meta.env.VITE_API_URL + '/auth/register', values);
+            await api.post('/auth/register', values);
             message.success('Registration successful! Check your email to verify account.');
             navigate('/login');
         } catch (error) {

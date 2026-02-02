@@ -10,11 +10,8 @@ require('dotenv').config();
             database: process.env.DB_NAME
         });
 
-        console.log('Connected to database.');
-
         try {
-            await connection.query('ALTER TABLE users ADD COLUMN verification_token VARCHAR(255) DEFAULT NULL');
-            console.log('Successfully added verification_token column.');
+            await connection.query('ALTER TABLE users ADD COLUMN verification_token VARCHAR(255) DEFAULT NULL')
         } catch (err) {
             if (err.code === 'ER_DUP_FIELDNAME') {
                 console.log('Column verification_token already exists.');
