@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Button, Typography, Spin, Card } from 'antd';
-import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined, MailOutlined } from '@ant-design/icons';
+import { Button, Typography, Spin } from 'antd';
+import { CheckCircleFilled, CloseCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import api from '../api/axios';
 import './VerifyEmailPage.scss';
 
-const { Title, Paragraph } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 function VerifyEmailPage() {
     const [searchParams] = useSearchParams();
@@ -41,66 +41,72 @@ function VerifyEmailPage() {
     }, [searchParams]);
 
     return (
-        <div className="verify-page">
-            <div className="verify-background">
-                <div className="orb orb-1"></div>
-                <div className="orb orb-2"></div>
+        <div className="login-container">
+            <div className="login-image-section">
+                <div className="overlay-text">
+                    <Title level={1} style={{ color: 'white' }}>Security First</Title>
+                    <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: '18px' }}>
+                        Ensuring every account is verified and secure.
+                    </Text>
+                </div>
             </div>
 
-            <Card className={`verify-card ${status}`}>
-                <div className="verify-content">
-                    {loading ? (
-                        <div className="verify-step">
-                            <Spin indicator={<LoadingOutlined style={{ fontSize: 64, color: '#1890ff' }} spin />} />
-                            <Title level={3} className="mt-20">Securing your account...</Title>
-                            <Paragraph type="secondary">Please wait while we validate your credentials.</Paragraph>
-                        </div>
-                    ) : status === 'success' ? (
-                        <div className="verify-step anim-fade-in">
-                            <div className="icon-wrapper success">
-                                <CheckCircleFilled />
-                            </div>
-                            <Title level={2}>Welcome Aboard!</Title>
-                            <Paragraph className="verify-desc">{message}</Paragraph>
-                            <Button
-                                type="primary"
-                                size="large"
-                                block
-                                className="action-btn"
-                                onClick={() => navigate('/login')}
-                            >
-                                Continue to Dashboard
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="verify-step anim-fade-in">
-                            <div className="icon-wrapper error">
-                                <CloseCircleFilled />
-                            </div>
-                            <Title level={2}>Verification Failed</Title>
-                            <Paragraph className="verify-desc">{message}</Paragraph>
-                            <Button
-                                type="primary"
-                                size="large"
-                                block
-                                danger
-                                className="action-btn"
-                                onClick={() => navigate('/register')}
-                            >
-                                Back to Registration
-                            </Button>
-                        </div>
-                    )}
-                </div>
+            <div className="login-form-section">
+                <div className="login-form-wrapper">
+                    <div className="login-header">
+                        <Title level={2}>Account Verification</Title>
+                        <Text type="secondary">Verification status for your account</Text>
+                    </div>
 
-                <div className="verify-footer">
-                    <MailOutlined /> <Text type="secondary">Task 4 Secure Authentication</Text>
+                    <div className="verify-result-content">
+                        {loading ? (
+                            <div className="status-container">
+                                <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+                                <Paragraph style={{ marginTop: 24 }}>Validating your token...</Paragraph>
+                            </div>
+                        ) : status === 'success' ? (
+                            <div className="status-container">
+                                <CheckCircleFilled style={{ fontSize: 64, color: '#52c41a', marginBottom: 24 }} />
+                                <Title level={4}>Email Verified!</Title>
+                                <Paragraph type="secondary">{message}</Paragraph>
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    block
+                                    className="login-btn"
+                                    onClick={() => navigate('/login')}
+                                    style={{ marginTop: 16 }}
+                                >
+                                    Go to Sign In
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="status-container">
+                                <CloseCircleFilled style={{ fontSize: 64, color: '#ff4d4f', marginBottom: 24 }} />
+                                <Title level={4}>Verification Failed</Title>
+                                <Paragraph type="secondary">{message}</Paragraph>
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    block
+                                    danger
+                                    className="login-btn"
+                                    onClick={() => navigate('/register')}
+                                    style={{ marginTop: 16 }}
+                                >
+                                    Try Registering Again
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="login-footer" style={{ marginTop: 40, opacity: 0.6 }}>
+                        <Text size="small">© 2026 Admin Panel Security</Text>
+                    </div>
                 </div>
-            </Card>
+            </div>
         </div>
     );
 }
-
-const { Text } = Typography;
 
 export default VerifyEmailPage;
