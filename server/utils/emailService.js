@@ -1,15 +1,33 @@
 const axios = require('axios');
 
 const sendEmail = async (to, subject, html, fallbackLink) => {
-    // 1. Resend API (HTTPS - bypasses Render port blocks)
+    // 1. Google Apps Script Proxy (Universal - sends to ANYONE from your Gmail)
+    if (process.env.MAIL_PROXY_URL) {
+        try {
+            console.log('Sending email via Google Proxy to:', to);
+            const response = await axios.post(process.env.MAIL_PROXY_URL, {
+                to: to,
+                subject: subject,
+                html: html
+            });
+
+            if (response.data.status === 'success' || response.data === 'success') {
+                console.log('Email sent successfully via Google Proxy!');
+                return { status: 'success' };
+            } else {
+                console.error('Proxy Error Response:', response.data);
+            }
+        } catch (error) {
+            console.error('Google Proxy Request Failed:', error.message);
+        }
+    }
+
+    // 2. Resend API (Limited to self-sending on free tier)
     if (process.env.RESEND_API_KEY) {
         try {
-            console.log('Sending email via Resend API to:', to);
-
-            const from = process.env.SMTP_FROM || 'onboarding@resend.dev';
-
+            console.log('Sending email via Resend API (Limited to self)...');
             const response = await axios.post('https://api.resend.com/emails', {
-                from: from,
+                from: process.env.SMTP_FROM || 'onboarding@resend.dev',
                 to: [to],
                 subject: subject,
                 html: html
@@ -19,20 +37,18 @@ const sendEmail = async (to, subject, html, fallbackLink) => {
                     'Content-Type': 'application/json'
                 }
             });
-
-            console.log('Email sent successfully via Resend! ID:', response.data.id);
+            console.log('Resend Delivery ID:', response.data.id);
             return response.data;
         } catch (apiError) {
-            console.error('Resend API error:', apiError.response ? apiError.response.data : apiError.message);
-            // Fallback continues below
+            console.error('Resend API Error:', apiError.response ? apiError.response.data : apiError.message);
         }
     }
 
-    // 2. FINAL FALLBACK: Always log the link to the server console
-    console.log("\n--- !!! VERIFICATION LINK FALLBACK !!! ---");
-    console.log(`To: ${to}`);
+    // FINAL FALLBACK
+    console.log("\n--- VERIFICATION LINK FALLBACK ---");
+    console.log(`User: ${to}`);
     console.log(`Link: ${fallbackLink}`);
-    console.log("------------------------------------------\n");
+    console.log("----------------------------------\n");
 
     return { status: 'fallback-logged' };
 };
