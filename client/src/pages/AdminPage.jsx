@@ -138,7 +138,7 @@ const AdminPage = () => {
     };
 
     return (
-        <Layout className="admin-layout" style={{ minHeight: '100vh', width: '100%' }}>
+        <Layout className="admin-layout" style={{ minHeight: '100vh', minWidth: '100vw' }}>
             <Header className="admin-header">
                 <Title level={4} style={{ margin: 0 }}>Admin Panel</Title>
                 <div className="header-actions">
