@@ -16,7 +16,6 @@ function RegisterPage() {
             const verifyUrl = response.data.verifyUrl;
 
             message.success('Registration successful! Please check your email.');
-            if (verifyUrl) console.log('DEBUG: Verification link:', verifyUrl);
             navigate('/login');
         } catch (error) {
             console.error(error);
